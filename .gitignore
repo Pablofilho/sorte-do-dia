@@ -5,6 +5,7 @@ __pycache__/
 .env
 token.json
 credentials.json
+.venv/
 
 # Vídeos gerados (pesados demais para o git)
 output/

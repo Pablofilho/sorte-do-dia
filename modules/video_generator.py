@@ -107,9 +107,9 @@ def criar_slide_intro() -> Image.Image:
     cx, cy = LARGURA // 2, ALTURA // 2 - 100
     draw.ellipse([cx - 180, cy - 180, cx + 180, cy + 180], fill=VERDE_CARD, outline=AMARELO, width=6)
 
-    # Emoji/ícone (⚽ simulado com texto)
+    # Ícone central (estrela — combina com o tema "Sorte")
     fonte_emoji = carregar_fonte(140, negrito=True)
-    texto_centralizado(draw, "⚽", cy - 100, fonte_emoji, AMARELO)
+    texto_centralizado(draw, "★", cy - 100, fonte_emoji, AMARELO)
 
     # Nome do canal
     fonte_titulo = carregar_fonte(90, negrito=True)
@@ -127,7 +127,7 @@ def criar_slide_intro() -> Image.Image:
     # Rodapé
     fonte_rodape = carregar_fonte(38)
     texto_centralizado(draw, "@sortedodia01", ALTURA - 120, fonte_rodape, AMARELO)
-    texto_centralizado(draw, "Siga para mais dicas! 🍀", ALTURA - 70, fonte_rodape, CINZA_CLARO)
+    texto_centralizado(draw, "Siga para mais dicas!", ALTURA - 70, fonte_rodape, CINZA_CLARO)
 
     return img
 
@@ -157,7 +157,7 @@ def criar_slide_jogo(jogo: dict, numero: int, total: int) -> Image.Image:
     # Tag do canal
     retangulo_arredondado(draw, margem, y_atual, LARGURA - margem, y_atual + 70,
                           20, VERDE_CARD, BORDA_CARD)
-    texto_centralizado(draw, f"🍀 SORTE DO DIA  |  Dica {numero}/{total}",
+    texto_centralizado(draw, f"★ SORTE DO DIA  |  Dica {numero}/{total}",
                        y_atual + 12, fonte_pequena, AMARELO)
     y_atual += 100
 
@@ -165,7 +165,7 @@ def criar_slide_jogo(jogo: dict, numero: int, total: int) -> Image.Image:
     esporte = jogo.get("esporte", "Futebol")
     if len(esporte) > 25:
         esporte = esporte[:25] + "..."
-    texto_centralizado(draw, f"⚽ {esporte.upper()}", y_atual, fonte_pequena, CINZA_CLARO)
+    texto_centralizado(draw, esporte.upper(), y_atual, fonte_pequena, CINZA_CLARO)
     y_atual += 70
 
     # ── Horário ───────────────────────────────────────────
@@ -177,7 +177,7 @@ def criar_slide_jogo(jogo: dict, numero: int, total: int) -> Image.Image:
             data_hora = dt.strftime("%d/%m %H:%M")
         except Exception:
             data_hora = "Hoje"
-    texto_centralizado(draw, f"🕐 {data_hora}", y_atual, fonte_media, BRANCO)
+    texto_centralizado(draw, data_hora, y_atual, fonte_media, BRANCO)
     y_atual += 90
 
     # ── Linha separadora ──────────────────────────────────
@@ -239,7 +239,7 @@ def criar_slide_jogo(jogo: dict, numero: int, total: int) -> Image.Image:
     retangulo_arredondado(draw, margem, y_atual, LARGURA - margem, y_atual + 140,
                           25, AMARELO, None)
     fonte_dica_label = carregar_fonte(38)
-    draw.text((margem + 30, y_atual + 15), "💡 NOSSA DICA:", font=fonte_dica_label, fill=PRETO)
+    draw.text((margem + 30, y_atual + 15), "★ NOSSA DICA:", font=fonte_dica_label, fill=PRETO)
     fonte_dica = carregar_fonte(58, negrito=True)
     dica_texto = jogo.get("dica", "Apostar com cautela")
     bbox_dica = draw.textbbox((0, 0), dica_texto, font=fonte_dica)
@@ -259,7 +259,7 @@ def criar_slide_jogo(jogo: dict, numero: int, total: int) -> Image.Image:
 
     # ── Rodapé ────────────────────────────────────────────
     fonte_rodape = carregar_fonte(38)
-    texto_centralizado(draw, "@sortedodia01  |  Siga para mais! 🍀", ALTURA - 80, fonte_rodape, AMARELO)
+    texto_centralizado(draw, "@sortedodia01  |  Siga para mais!", ALTURA - 80, fonte_rodape, AMARELO)
 
     return img
 
@@ -282,7 +282,7 @@ def criar_slide_encerramento(jogos: list[dict]) -> Image.Image:
     fonte_rodape = carregar_fonte(38)
 
     y = 120
-    texto_centralizado(draw, "📋 RESUMO DO DIA", y, fonte_titulo, AMARELO)
+    texto_centralizado(draw, "★ RESUMO DO DIA", y, fonte_titulo, AMARELO)
     y += 120
 
     hoje = date.today().strftime("%d/%m/%Y")
@@ -294,9 +294,9 @@ def criar_slide_encerramento(jogos: list[dict]) -> Image.Image:
 
     for jogo in jogos:
         retangulo_arredondado(draw, 50, y, LARGURA - 50, y + 100, 15, VERDE_CARD, BORDA_CARD)
-        draw.text((80, y + 12), f"⚽ {jogo.get('time_casa','')} x {jogo.get('time_fora','')}",
+        draw.text((80, y + 12), f"{jogo.get('time_casa','')} x {jogo.get('time_fora','')}",
                   font=fonte_item, fill=BRANCO)
-        draw.text((80, y + 57), f"   ✅ {jogo.get('dica', '')}",
+        draw.text((80, y + 57), f"   ✓ {jogo.get('dica', '')}",
                   font=fonte_item, fill=AMARELO)
         y += 120
 
@@ -311,7 +311,7 @@ def criar_slide_encerramento(jogos: list[dict]) -> Image.Image:
     # Botão de CTA
     y = ALTURA - 250
     retangulo_arredondado(draw, 100, y, LARGURA - 100, y + 110, 30, AMARELO)
-    texto_centralizado(draw, "🍀 SIGA @sortedodia01", y + 25, carregar_fonte(52, negrito=True), PRETO)
+    texto_centralizado(draw, "★ SIGA @sortedodia01", y + 25, carregar_fonte(52, negrito=True), PRETO)
 
     texto_centralizado(draw, "#apostasesportivas #tipsgratis #futebol", ALTURA - 100, fonte_rodape, CINZA_CLARO)
 
