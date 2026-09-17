@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+token.json
+credentials.json
+
+# Vídeos gerados (pesados demais para o git)
+output/
+logs/
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+
+# Misc
+.DS_Store
+*.log
+.servidor.pid

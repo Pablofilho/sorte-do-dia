@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sorte do Dia — Painel de Controle</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════ SIDEBAR ═══════════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">🍀</span>
+    <div>
+      <div class="logo-title">Sorte do Dia</div>
+      <div class="logo-sub">@sortedodia01</div>
+    </div>
+  </div>
+
+  <ul class="nav-links">
+    <li><a href="#" class="nav-link active" data-tab="dashboard">
+      <span>📊</span> Dashboard
+    </a></li>
+    <li><a href="#" class="nav-link" data-tab="casas">
+      <span>🏦</span> Casas de Aposta
+    </a></li>
+    <li><a href="#" class="nav-link" data-tab="tipos">
+      <span>🎯</span> Tipos de Aposta
+    </a></li>
+    <li><a href="#" class="nav-link" data-tab="pipeline">
+      <span>▶️</span> Pipeline
+    </a></li>
+    <li><a href="#" class="nav-link" data-tab="videos">
+      <span>🎬</span> Vídeos
+    </a></li>
+    <li><a href="#" class="nav-link" data-tab="config">
+      <span>⚙️</span> Configurações
+    </a></li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <div class="status-dot" id="pipeline-dot"></div>
+    <span id="pipeline-footer-status">Pipeline inativo</span>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════ MAIN ═══════════════════════════════ -->
+<main class="main-content">
+
+  <!-- ── TOAST ── -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- ══════════ TAB: DASHBOARD ══════════ -->
+  <section id="tab-dashboard" class="tab-content active">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <span class="badge" id="dash-date"></span>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card stat-card">
+        <div class="stat-icon">🎬</div>
+        <div class="stat-info">
+          <div class="stat-value" id="total-videos">—</div>
+          <div class="stat-label">Vídeos Gerados</div>
+        </div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon">🏦</div>
+        <div class="stat-info">
+          <div class="stat-value" id="casas-ativas">—</div>
+          <div class="stat-label">Casas Ativas</div>
+        </div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-info">
+          <div class="stat-value" id="apostas-ativas">—</div>
+          <div class="stat-label">Tipos Ativos</div>
+        </div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-info">
+          <div class="stat-value" id="agendamento-status">—</div>
+          <div class="stat-label">Agendamento</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Último relatório -->
+    <div class="card" id="ultimo-relatorio-card" style="display:none">
+      <div class="card-header">
+        <h2>📋 Último Pipeline</h2>
+        <span class="badge badge-success" id="ultimo-status-badge"></span>
+      </div>
+      <div id="ultimo-jogos-lista" class="jogos-lista"></div>
+    </div>
+
+    <!-- Vídeos recentes -->
+    <div class="card">
+      <div class="card-header">
+        <h2>🎬 Vídeos Recentes</h2>
+        <button class="btn btn-sm" onclick="showTab('videos')">Ver todos →</button>
+      </div>
+      <div id="videos-recentes-lista" class="videos-lista"></div>
+    </div>
+
+    <!-- Ação rápida -->
+    <div class="card action-card">
+      <h2>⚡ Ação Rápida</h2>
+      <p>Execute o pipeline agora para gerar o vídeo de hoje.</p>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="rodarPipeline(false)">▶ Rodar Agora (API Real)</button>
+        <button class="btn btn-secondary" onclick="rodarPipeline(true)">🧪 Rodar Teste</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════ TAB: CASAS DE APOSTA ══════════ -->
+  <section id="tab-casas" class="tab-content">
+    <div class="page-header">
+      <h1>Casas de Aposta</h1>
+      <button class="btn btn-primary" onclick="abrirModalCasa()">+ Adicionar Casa</button>
+    </div>
+    <p class="page-desc">Configure os sites das casas de aposta que o bot irá monitorar para buscar as melhores odds.</p>
+
+    <div id="casas-lista" class="casas-lista"></div>
+  </section>
+
+
+  <!-- ══════════ TAB: TIPOS DE APOSTA ══════════ -->
+  <section id="tab-tipos" class="tab-content">
+    <div class="page-header">
+      <h1>Tipos de Aposta</h1>
+      <button class="btn btn-primary" onclick="salvarTipos()">💾 Salvar</button>
+    </div>
+    <p class="page-desc">Selecione quais mercados de apostas o bot deve pesquisar e incluir nos vídeos.</p>
+
+    <div id="tipos-lista" class="tipos-lista"></div>
+  </section>
+
+
+  <!-- ══════════ TAB: PIPELINE ══════════ -->
+  <section id="tab-pipeline" class="tab-content">
+    <div class="page-header">
+      <h1>Pipeline</h1>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="btn-rodar" onclick="rodarPipeline(false)">▶ Rodar Agora</button>
+        <button class="btn btn-secondary" onclick="rodarPipeline(true)">🧪 Modo Teste</button>
+      </div>
+    </div>
+
+    <div class="card pipeline-status-card">
+      <div class="pipeline-status-header">
+        <div class="status-indicator" id="status-indicator">
+          <div class="status-dot-lg" id="status-dot-lg"></div>
+          <span id="status-texto">Aguardando...</span>
+        </div>
+        <button class="btn btn-sm" onclick="limparLogs()">🗑 Limpar Logs</button>
+      </div>
+      <div id="log-container" class="log-container">
+        <div class="log-placeholder">Os logs aparecerão aqui quando o pipeline rodar.</div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════ TAB: VÍDEOS ══════════ -->
+  <section id="tab-videos" class="tab-content">
+    <div class="page-header">
+      <h1>Vídeos Gerados</h1>
+      <span id="total-videos-badge" class="badge"></span>
+    </div>
+
+    <div id="videos-grid" class="videos-grid"></div>
+  </section>
+
+
+  <!-- ══════════ TAB: CONFIGURAÇÕES ══════════ -->
+  <section id="tab-config" class="tab-content">
+    <div class="page-header">
+      <h1>Configurações</h1>
+      <button class="btn btn-primary" onclick="salvarConfig()">💾 Salvar Tudo</button>
+    </div>
+
+    <!-- Odds API -->
+    <div class="card">
+      <div class="card-header"><h2>🔑 The Odds API</h2>
+        <a href="https://the-odds-api.com/" target="_blank" class="badge badge-info">Cadastro gratuito →</a>
+      </div>
+      <div class="form-group">
+        <label>Chave da API</label>
+        <input type="password" id="cfg-odds-key" placeholder="Cole sua chave aqui..." class="input"/>
+      </div>
+      <div class="form-group">
+        <label>Máximo de jogos por vídeo</label>
+        <input type="number" id="cfg-max-jogos" min="1" max="10" class="input input-sm"/>
+      </div>
+    </div>
+
+    <!-- Vídeo -->
+    <div class="card">
+      <div class="card-header"><h2>🎬 Configurações de Vídeo</h2></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nome do Canal</label>
+          <input type="text" id="cfg-canal-nome" class="input"/>
+        </div>
+        <div class="form-group">
+          <label>Usuário TikTok</label>
+          <input type="text" id="cfg-canal-user" class="input"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Duração total (segundos)</label>
+          <input type="number" id="cfg-duracao" min="15" max="60" class="input input-sm"/>
+        </div>
+        <div class="form-group">
+          <label>FPS</label>
+          <input type="number" id="cfg-fps" min="24" max="60" class="input input-sm"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agendamento -->
+    <div class="card">
+      <div class="card-header">
+        <h2>⏰ Agendamento Automático</h2>
+        <label class="toggle">
+          <input type="checkbox" id="cfg-agendamento-ativo"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <p class="card-desc">O pipeline rodará automaticamente nos horários configurados todos os dias.</p>
+      <div class="form-group">
+        <label>Horários (HH:MM, separados por vírgula)</label>
+        <input type="text" id="cfg-horarios" placeholder="10:00, 15:00" class="input"/>
+      </div>
+    </div>
+
+    <!-- Google Drive -->
+    <div class="card">
+      <div class="card-header">
+        <h2>☁️ Google Drive</h2>
+        <label class="toggle">
+          <input type="checkbox" id="cfg-drive-ativo"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="form-group">
+        <label>ID da Pasta no Drive</label>
+        <input type="text" id="cfg-drive-folder" placeholder="Cole o ID da pasta aqui..." class="input"/>
+      </div>
+      <p class="card-desc">💡 O ID está na URL da pasta: drive.google.com/drive/folders/<strong>[ID_AQUI]</strong></p>
+    </div>
+  </section>
+
+</main><!-- /main-content -->
+
+
+<!-- ═══════════════════ MODAL — ADICIONAR CASA ═══════════════════ -->
+<div id="modal-casa" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-casa-titulo">Adicionar Casa de Aposta</h2>
+      <button class="modal-close" onclick="fecharModalCasa()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="modal-casa-id"/>
+      <div class="form-group">
+        <label>Nome da Casa *</label>
+        <input type="text" id="modal-casa-nome" class="input" placeholder="Ex: Betano"/>
+      </div>
+      <div class="form-group">
+        <label>URL do Site *</label>
+        <input type="text" id="modal-casa-url" class="input" placeholder="https://www.betano.com.br"/>
+      </div>
+      <div class="form-group form-check">
+        <label class="toggle">
+          <input type="checkbox" id="modal-casa-ativa" checked/>
+          <span class="toggle-slider"></span>
+        </label>
+        <span>Casa ativa</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModalCasa()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCasa()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+{
+  "casas_de_aposta": [
+    {
+      "id": 1,
+      "nome": "Betano",
+      "url": "https://www.betano.com.br",
+      "ativa": true
+    },
+    {
+      "id": 2,
+      "nome": "Bet365",
+      "url": "https://www.bet365.com",
+      "ativa": true
+    },
+    {
+      "id": 3,
+      "nome": "Sportingbet",
+      "url": "https://www.sportingbet.com",
+      "ativa": false
+    },
+    {
+      "id": 4,
+      "nome": "superbet",
+      "url": "https://superbet.bet.br/",
+      "ativa": true
+    }
+  ],
+  "tipos_de_aposta": {
+    "resultado_final": {
+      "ativo": true,
+      "label": "Resultado Final (1X2)",
+      "mercado": "h2h"
+    },
+    "ambas_marcam": {
+      "ativo": true,
+      "label": "Ambas Marcam (BTTS)",
+      "mercado": "btts"
+    },
+    "dupla_chance": {
+      "ativo": true,
+      "label": "Dupla Chance (1X, X2, 12)",
+      "mercado": "double_chance"
+    },
+    "over_under": {
+      "ativo": true,
+      "label": "Over/Under Gols (2.5)",
+      "mercado": "totals",
+      "linha": 2.5
+    },
+    "handicap_asiatico": {
+      "ativo": false,
+      "label": "Handicap Asiático",
+      "mercado": "asian_handicap"
+    },
+    "escanteios": {
+      "ativo": false,
+      "label": "Total de Escanteios",
+      "mercado": "corners"
+    },
+    "cartoes": {
+      "ativo": false,
+      "label": "Total de Cartões",
+      "mercado": "cards"
+    }
+  },
+  "odds_api": {
+    "chave": "",
+    "esportes": [
+      "soccer_brazil_campeonato",
+      "soccer_epl",
+      "soccer_uefa_champs_league"
+    ],
+    "regioes": [
+      "eu",
+      "uk"
+    ],
+    "max_jogos_por_video": 3
+  },
+  "video": {
+    "largura": 1080,
+    "altura": 1920,
+    "fps": 30,
+    "duracao_total": 40,
+    "canal_nome": "Sorte do Dia",
+    "canal_usuario": "@sortedodia01"
+  },
+  "agendamento": {
+    "ativo": false,
+    "horarios": [
+      "10:00",
+      "15:00"
+    ]
+  },
+  "google_drive": {
+    "ativo": false,
+    "folder_id": ""
+  }
+}
