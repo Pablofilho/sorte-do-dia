@@ -2,6 +2,7 @@ pillow
 moviepy
 requests
 python-dotenv
+supabase
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
