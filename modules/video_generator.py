@@ -248,7 +248,7 @@ def criar_slide_jogo(jogo: dict, numero: int, total: int) -> Image.Image:
     y_atual += 170
 
     # ── Confiança ─────────────────────────────────────────
-    confianca = jogo.get("confianca", "Média ⭐")
+    confianca = jogo.get("confianca", "Média ★")
     texto_centralizado(draw, f"Confiança: {confianca}", y_atual, fonte_media, BRANCO)
     y_atual += 80
 

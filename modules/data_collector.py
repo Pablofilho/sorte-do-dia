@@ -8,6 +8,7 @@ import requests
 from datetime import datetime, date
 from dotenv import load_dotenv
 from modules.supabase_client import get_config
+from modules.scraper_superbet import buscar_jogos as buscar_jogos_superbet
 
 load_dotenv()
 
@@ -160,13 +161,13 @@ def selecionar_melhor_dica(jogo: dict) -> dict:
     # Define confiança baseada na odd
     odd = jogo["odd_dica"]
     if odd <= 1.60:
-        jogo["confianca"] = "Muito Alta ⭐⭐⭐"
+        jogo["confianca"] = "Muito Alta ★★★"
     elif odd <= 2.00:
-        jogo["confianca"] = "Alta ⭐⭐"
+        jogo["confianca"] = "Alta ★★"
     elif odd <= 2.50:
-        jogo["confianca"] = "Média ⭐"
+        jogo["confianca"] = "Média ★"
     else:
-        jogo["confianca"] = "Arriscada ⚠️"
+        jogo["confianca"] = "Arriscada ⚠"
 
     return jogo
 
@@ -178,12 +179,19 @@ def coletar_dados(usar_simulacao: bool = False) -> list[dict]:
     """
     config_odds = get_config("odds_api")
     api_key_valida = config_odds and config_odds.get("chave")
+    max_jogos = (config_odds or {}).get("max_jogos_por_video", 3)
 
-    if usar_simulacao or not api_key_valida:
-        print("[DATA] Usando dados simulados (sem API key configurada no painel ou modo simulação)")
+    if usar_simulacao:
+        print("[DATA] Usando dados simulados (modo simulação)")
         jogos = jogos_simulados()
-    else:
+    elif api_key_valida:
         jogos = buscar_jogos_com_odds()
+    else:
+        print("[DATA] Sem API key configurada — buscando jogos reais direto na Superbet")
+        jogos = buscar_jogos_superbet(limite=max_jogos)
+        if not jogos:
+            print("[DATA] Nenhum jogo encontrado na Superbet, usando dados simulados")
+            jogos = jogos_simulados()
 
     # Adiciona dica automática se não existir
     for i, jogo in enumerate(jogos):
