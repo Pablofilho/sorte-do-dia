@@ -62,14 +62,20 @@ CREATE TABLE IF NOT EXISTS historico_pipeline (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Habilitar RLS (Segurança) mas permitir leitura/escrita anônima para facilitar
--- Como é um painel interno, podemos deixar as políticas abertas temporariamente
+-- Habilitar RLS (Segurança).
+-- Leitura é pública (dashboard e bot precisam ler). Escrita em casas_aposta,
+-- tipos_aposta e configuracoes exige a service_role key (usada só no backend
+-- do painel admin, atrás de senha) — a chave pública (anon/publishable) não
+-- consegue mais escrever nessas tabelas.
 ALTER TABLE casas_aposta ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tipos_aposta ENABLE ROW LEVEL SECURITY;
 ALTER TABLE configuracoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE historico_pipeline ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Acesso total casas" ON casas_aposta FOR ALL USING (true);
-CREATE POLICY "Acesso total tipos" ON tipos_aposta FOR ALL USING (true);
-CREATE POLICY "Acesso total config" ON configuracoes FOR ALL USING (true);
+CREATE POLICY "Leitura publica casas" ON casas_aposta FOR SELECT USING (true);
+CREATE POLICY "Leitura publica tipos" ON tipos_aposta FOR SELECT USING (true);
+CREATE POLICY "Leitura publica config" ON configuracoes FOR SELECT USING (true);
+
+-- historico_pipeline: o bot Python (chave anon) grava os relatórios, então
+-- leitura e escrita continuam abertas aqui.
 CREATE POLICY "Acesso total historico" ON historico_pipeline FOR ALL USING (true);

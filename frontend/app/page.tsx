@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
 export default function Home() {
@@ -39,6 +40,12 @@ export default function Home() {
           </h1>
           <p className="text-[#86efac] mt-1">Dashboard de Controle</p>
         </div>
+        <Link
+          href="/admin"
+          className="text-sm text-[#4b7a4b] hover:text-[#86efac] transition"
+        >
+          Painel Admin
+        </Link>
       </header>
 
       <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
