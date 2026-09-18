@@ -20,8 +20,7 @@ export async function PUT(
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("configuracoes")
-    .update({ valor })
-    .eq("chave", chave)
+    .upsert({ chave, valor }, { onConflict: "chave" })
     .select()
     .single();
 

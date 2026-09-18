@@ -19,6 +19,20 @@ type OddsApiConfig = {
   max_jogos_por_video?: number;
 };
 
+type MercadoPick = { label: string; escolha: string; odd: number; descricao?: string };
+type BilheteSuportado = {
+  casa: string;
+  suportado: true;
+  timeCasa: string;
+  timeFora: string;
+  esporte: string;
+  dataHora: string;
+  mercados: Record<string, MercadoPick>;
+  oddsResultadoFinal?: { casa: number; empate: number; fora: number };
+};
+type BilheteNaoSuportado = { casa: string; suportado: false; erro?: string };
+type Bilhete = BilheteSuportado | BilheteNaoSuportado;
+
 async function chamarApi(url: string, method: string, body?: unknown) {
   const resp = await fetch(url, {
     method,
@@ -58,6 +72,12 @@ export default function AdminDashboard({
   const [novaCasaUrl, setNovaCasaUrl] = useState("");
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
+
+  const [bilhetes, setBilhetes] = useState<Bilhete[]>([]);
+  const [selecionados, setSelecionados] = useState<Set<number>>(new Set());
+  const [gerandoBilhetes, setGerandoBilhetes] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+  const [mensagemBilhetes, setMensagemBilhetes] = useState("");
 
   function mostrarErro(e: unknown) {
     setErro(e instanceof Error ? e.message : "Erro inesperado");
@@ -156,6 +176,114 @@ export default function AdminDashboard({
       mostrarErro(e);
     } finally {
       setSalvando(false);
+    }
+  }
+
+  // ── Gerar Bilhetes ─────────────────────────────────
+  async function gerarBilhetes() {
+    setGerandoBilhetes(true);
+    setMensagemBilhetes("");
+    try {
+      const { bilhetes: novosBilhetes } = await chamarApi(
+        "/api/admin/gerar-bilhetes",
+        "POST"
+      );
+      setBilhetes(novosBilhetes);
+      setSelecionados(
+        new Set(
+          (novosBilhetes as Bilhete[])
+            .map((b, i) => (b.suportado ? i : -1))
+            .filter((i) => i !== -1)
+        )
+      );
+    } catch (e) {
+      mostrarErro(e);
+    } finally {
+      setGerandoBilhetes(false);
+    }
+  }
+
+  function alternarSelecao(indice: number) {
+    setSelecionados((prev) => {
+      const novo = new Set(prev);
+      if (novo.has(indice)) novo.delete(indice);
+      else novo.add(indice);
+      return novo;
+    });
+  }
+
+  function derivarDicaEConfianca(b: BilheteSuportado): { dica: string; confianca: string } {
+    const principal = b.mercados.resultado_final;
+    let odd: number;
+    let dica: string;
+
+    if (principal) {
+      odd = principal.odd;
+      const info = principal.descricao ?? principal.escolha;
+      dica = info.includes("empate")
+        ? "Empate"
+        : info.replace(" vence a partida", " vence");
+    } else {
+      const [chave, pick] = Object.entries(b.mercados)[0] ?? [];
+      odd = pick?.odd ?? 99;
+      dica = pick ? `${pick.label}: ${pick.escolha}` : chave ?? "Apostar com cautela";
+    }
+
+    let confianca: string;
+    if (odd <= 1.6) confianca = "Muito Alta ★★★";
+    else if (odd <= 2.0) confianca = "Alta ★★";
+    else if (odd <= 2.5) confianca = "Média ★";
+    else confianca = "Arriscada ⚠";
+
+    return { dica, confianca };
+  }
+
+  function formatarDataHora(bruta: string): string {
+    // "YYYY-MM-DD HH:MM:SS" -> "DD/MM/YYYY HH:MM"
+    const m = bruta.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+    if (!m) return bruta;
+    const [, ano, mes, dia, hora, min] = m;
+    return `${dia}/${mes}/${ano} ${hora}:${min}`;
+  }
+
+  async function confirmarSelecao() {
+    setConfirmando(true);
+    setMensagemBilhetes("");
+    try {
+      const jogos = bilhetes
+        .map((b, i) => ({ b, i }))
+        .filter(({ b, i }) => b.suportado && selecionados.has(i))
+        .map(({ b }) => {
+          const bilhete = b as BilheteSuportado;
+          const { dica, confianca } = derivarDicaEConfianca(bilhete);
+          return {
+            time_casa: bilhete.timeCasa,
+            time_fora: bilhete.timeFora,
+            esporte: bilhete.esporte,
+            data_hora: formatarDataHora(bilhete.dataHora),
+            bookmaker: bilhete.casa,
+            odd_casa: bilhete.oddsResultadoFinal?.casa ?? 0,
+            odd_empate: bilhete.oddsResultadoFinal?.empate ?? 0,
+            odd_fora: bilhete.oddsResultadoFinal?.fora ?? 0,
+            dica,
+            confianca,
+          };
+        });
+
+      if (jogos.length === 0) {
+        setMensagemBilhetes("Selecione ao menos um bilhete antes de confirmar.");
+        return;
+      }
+
+      const hoje = new Date().toISOString().slice(0, 10);
+      await chamarApi("/api/admin/config/bilhetes_do_dia", "PUT", { data: hoje, jogos });
+      setMensagemBilhetes(
+        `${jogos.length} bilhete(s) confirmado(s) — serão usados na próxima geração de vídeo.`
+      );
+    } catch (e) {
+      mostrarErro(e);
+    } finally {
+      setConfirmando(false);
     }
   }
 
@@ -269,6 +397,89 @@ export default function AdminDashboard({
               <p className="text-[#4b7a4b] text-sm">Nenhum tipo cadastrado.</p>
             )}
           </div>
+        </section>
+
+        {/* Gerar Bilhetes */}
+        <section className="bg-[#122012] border border-[#1e4a1e] rounded-xl p-6 lg:col-span-2">
+          <div className="flex items-center justify-between mb-4 border-b border-[#1e4a1e] pb-2">
+            <h2 className="text-xl font-semibold">Gerar Bilhetes</h2>
+            <button
+              onClick={gerarBilhetes}
+              disabled={gerandoBilhetes}
+              className="bg-[#22c55e] text-black font-semibold px-4 py-2 rounded hover:bg-[#4ade80] transition text-sm disabled:opacity-50"
+            >
+              {gerandoBilhetes ? "Buscando..." : "Gerar bilhetes"}
+            </button>
+          </div>
+
+          {bilhetes.length === 0 ? (
+            <p className="text-[#4b7a4b] text-sm">
+              Busca um jogo por casa de aposta ativa (respeitando os tipos de aposta
+              marcados acima) pra você revisar antes de confirmar pro vídeo.
+            </p>
+          ) : (
+            <>
+              <div className="space-y-3 mb-4">
+                {bilhetes.map((b, i) =>
+                  b.suportado ? (
+                    <label
+                      key={i}
+                      className="bg-[#0f2a0f] p-4 rounded-lg flex items-start gap-3 cursor-pointer block"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selecionados.has(i)}
+                        onChange={() => alternarSelecao(i)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">
+                            {b.timeCasa} x {b.timeFora}
+                          </span>
+                          <span className="text-xs text-[#4b7a4b]">{b.casa}</span>
+                        </div>
+                        <div className="text-xs text-[#4b7a4b] mb-2">
+                          {b.esporte} · {formatarDataHora(b.dataHora)}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(b.mercados).map(([chave, m]) => (
+                            <span
+                              key={chave}
+                              className="bg-[#0a1a0a] border border-[#1e4a1e] rounded px-2 py-1 text-xs"
+                            >
+                              {m.label}: <span className="text-[#facc15]">{m.escolha}</span>{" "}
+                              ({m.odd})
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </label>
+                  ) : (
+                    <div
+                      key={i}
+                      className="bg-[#0f2a0f] p-4 rounded-lg flex items-center justify-between opacity-60"
+                    >
+                      <span className="font-medium">{b.casa}</span>
+                      <span className="text-xs text-[#4b7a4b]">
+                        {b.erro ?? "Sem busca automática ainda"}
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+              <button
+                onClick={confirmarSelecao}
+                disabled={confirmando}
+                className="bg-[#facc15] text-black font-semibold px-4 py-2 rounded hover:bg-[#fde047] transition text-sm disabled:opacity-50"
+              >
+                {confirmando ? "Confirmando..." : "Confirmar seleção pro vídeo"}
+              </button>
+            </>
+          )}
+          {mensagemBilhetes && (
+            <p className="text-sm text-[#86efac] mt-3">{mensagemBilhetes}</p>
+          )}
         </section>
 
         {/* Configurações Gerais */}

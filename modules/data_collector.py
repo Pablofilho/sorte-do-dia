@@ -181,9 +181,20 @@ def coletar_dados(usar_simulacao: bool = False) -> list[dict]:
     api_key_valida = config_odds and config_odds.get("chave")
     max_jogos = (config_odds or {}).get("max_jogos_por_video", 3)
 
+    bilhetes_do_dia = get_config("bilhetes_do_dia")
+    hoje = date.today().isoformat()
+    bilhetes_validos_hoje = (
+        bilhetes_do_dia
+        and bilhetes_do_dia.get("data") == hoje
+        and bilhetes_do_dia.get("jogos")
+    )
+
     if usar_simulacao:
         print("[DATA] Usando dados simulados (modo simulação)")
         jogos = jogos_simulados()
+    elif bilhetes_validos_hoje:
+        print("[DATA] Usando bilhetes confirmados no painel admin")
+        jogos = bilhetes_do_dia["jogos"]
     elif api_key_valida:
         jogos = buscar_jogos_com_odds()
     else:
